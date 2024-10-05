@@ -1,0 +1,194 @@
+----------------------------------------------------------------
+#Role,RoleBinding and ClusterRole , ClusterRoleBinding
+----------------------------------------------------------------
+
+1. Service Account
+A ServiceAccount is used to bind RBAC rules to a specific user or service.
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: example-serviceaccount
+  namespace: default
+
+----------------------------------------------------------------
+
+2. ClusterRole
+A ClusterRole defines permissions for resources across the entire cluster. It can be used with RoleBindings or ClusterRoleBindings depending on whether you want to apply permissions in a namespace or cluster-wide.
+
+Example for Full Read-Only Access:
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: read-only
+rules:
+  - apiGroups: [""]  # "" indicates the core API group
+    resources: ["pods", "services", "configmaps"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: ["apps"]
+    resources: ["deployments"]
+    verbs: ["get", "list", "watch"]
+
+----------------------------------------------------------------
+
+3. ClusterRoleBinding
+This binds the ClusterRole to a user or service account across all namespaces.
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: read-only-binding
+subjects:
+  - kind: ServiceAccount
+    name: example-serviceaccount
+    namespace: default  # The namespace where the ServiceAccount exists
+roleRef:
+  kind: ClusterRole
+  name: read-only  # Referencing the role defined above
+  apiGroup: rbac.authorization.k8s.io
+
+----------------------------------------------------------------
+
+4. Role
+A Role defines access rules within a specific namespace. Use this for namespace-scoped permissions.
+
+Example for Full Access in a Namespace:
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: development
+  name: namespace-admin
+rules:
+  - apiGroups: [""]
+    resources: ["pods", "services", "configmaps", "secrets"]
+    verbs: ["get", "list", "watch", "create", "update", "delete"]
+  - apiGroups: ["apps"]
+    resources: ["deployments", "statefulsets"]
+    verbs: ["get", "list", "watch", "create", "update", "delete"]
+
+----------------------------------------------------------------
+
+5. RoleBinding
+This binds a Role to a user or service account within a namespace.
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: namespace-admin-binding
+  namespace: development  # Namespace-specific binding
+subjects:
+  - kind: ServiceAccount
+    name: example-serviceaccount
+    namespace: default  # The namespace of the service account
+roleRef:
+  kind: Role
+  name: namespace-admin  # Referencing the role defined above
+  apiGroup: rbac.authorization.k8s.io
+
+----------------------------------------------------------------
+
+6. Limiting Access to Specific Resources
+If you want to restrict access to specific resources, such as limiting access to secrets in a namespace, here's an example:
+
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  namespace: development
+  name: secret-reader
+rules:
+  - apiGroups: [""]
+    resources: ["secrets"]
+    verbs: ["get"]
+Binding the Role:
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: secret-reader-binding
+  namespace: development
+subjects:
+  - kind: ServiceAccount
+    name: example-serviceaccount
+    namespace: default
+roleRef:
+  kind: Role
+  name: secret-reader
+  apiGroup: rbac.authorization.k8s.io
+----------------------------------------------------------------
+
+7. Giving Admin Access to a Namespace
+If you want to grant full control over a specific namespace to a service account or user, you can create a role with admin-level access:
+
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: namespace-admin
+  namespace: devops
+rules:
+  - apiGroups: [""]
+    resources: ["*"]  # All core resources
+    verbs: ["*"]      # Full access to everything
+  - apiGroups: ["apps", "extensions"]
+    resources: ["*"]
+    verbs: ["*"]
+
+And then bind it:
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: namespace-admin-binding
+  namespace: devops
+subjects:
+  - kind: ServiceAccount
+    name: example-serviceaccount
+    namespace: devops
+roleRef:
+  kind: Role
+  name: namespace-admin
+  apiGroup: rbac.authorization.k8s.io
+
+----------------------------------------------------------------
+
+8. Allowing Pod Logs Access
+This example restricts access to view logs of pods:
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pod-logs-reader
+  namespace: default
+rules:
+  - apiGroups: [""]
+    resources: ["pods/log"]
+    verbs: ["get", "list"]
+
+Bind the role:
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-logs-reader-binding
+  namespace: default
+subjects:
+  - kind: ServiceAccount
+    name: example-serviceaccount
+    namespace: default
+roleRef:
+  kind: Role
+  name: pod-logs-reader
+  apiGroup: rbac.authorization.k8s.io
+
+----------------------------------------------------------------
+
+These examples cover common RBAC scenarios, from granting read-only access to allowing full admin privileges over a namespace. You can modify these templates to fit specific needs for different roles and permissions within your Kubernetes cluster.
+
+
+
+
+
+
