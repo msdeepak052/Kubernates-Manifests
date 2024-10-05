@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-1
+  namespace: default
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx  # Specify your Ingress Controller
+  rules:
+    - host: nginx.devopswithdeepak.co.in
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nginxsvc  # Your service name for example.com
+                port:
+                  number: 80      # Port on which service-a is exposed
+    - host: javawebapp.devopswithdeepak.co.in
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: javawebappsvc  # Your service name for test.com
+                port:
+                  number: 80      # Port on which service-b is exposed
