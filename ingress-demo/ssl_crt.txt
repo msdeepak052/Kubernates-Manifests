@@ -1,0 +1,33 @@
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -out deepak-ingress-tls.crt -keyout deepak-ingress-tls.key -subj "/CN=devopswithdeepak.co.in/O=deepak-ingress-tls"
+kubectl create secret tls deepak-ingress-tls --namespace default --key deepak-ingress-tls.key --cert deepak-ingress-tls.crt
+
+attach the ssl certificate in the ingress file
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-2
+  namespace: default
+spec:  # This is where spec begins
+  ingressClassName: nginx  # Specify your Ingress Controller
+  tls:
+  - hosts:
+      - devopswithdeepak.co.in
+    secretName: deepak-ingress-tls
+  rules:
+    - host: devopswithdeepak.co.in
+      http:
+        paths:
+          - path: "/"
+            pathType: Prefix
+            backend:
+              service:
+                name: nginxsvc  # Your service name for /
+                port:
+                  number: 80      # Port on which nginxsvc is exposed
+          - path: "/java-web-app"
+            pathType: Prefix
+            backend:
+              service:
+                name: javawebappsvc  # Your service name for /java-web-app
+                port:
+                  number: 80      # Port on which javawebappsvc is exposed
