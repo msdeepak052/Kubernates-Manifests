@@ -1,0 +1,30 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: ingress-prometheus-rule
+  namespace: monitoring
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  ingressClassName: nginx  # Specify your Ingress Controller
+  rules:
+    - host: prometheus.devopswithdeepak.co.in
+      http:
+        paths:
+          - path: "/"
+            pathType: Prefix
+            backend:
+              service:
+                name: prometheus-server  # Your service name for example.com
+                port:
+                  number: 80      # Port on which service-a is exposed
+    - host: alertmanager.devopswithdeepak.co.in
+      http:
+        paths:
+          - path: "/"
+            pathType: Prefix
+            backend:
+              service:
+                name: prometheus-alertmanager  # Your service name for test.com
+                port:
+                  number: 80      # Port on which service-b is exposed
